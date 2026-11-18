@@ -1,0 +1,22 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname', 'instance']
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 1h
+  receiver: 'discord-notifications'
+
+receivers:
+  - name: 'discord-notifications'
+    discord_configs:
+      - webhook_url: '${DISCORD_WEBHOOK_URL}'
+        send_resolved: true
+        title: '{{ if eq .Status "firing" }} ALERTE{{ else }} RÉSOLU{{ end }} : {{ .CommonLabels.alertname }}'
+        message: |
+          {{ range .Alerts }}
+          **Statut :** {{ .Status }}
+          **Cible :** {{ .Labels.instance }} ({{ .Labels.job }})
+          **Détails :** {{ .Annotations.description }}
+          {{ end }}
